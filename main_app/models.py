@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import User
+
 
 # Create your models here.
 class Parkinglot (models.Model):
@@ -19,6 +21,22 @@ class Parkspot(models.Model):
 
     def __str__(self):
         return f"{self.status} - {self.parkinglot.name}"
+
+class Car(models.Model):
+    model=models.CharField(max_length=50,blank=True,null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     
+    def __str__(self):
+        return f"{self.model}"
+
+
+
+
 class Reservation(models.Model):
-    pass
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    car=models.ForeignKey(Car,on_delete=models.CASCADE)
+    Parkspot=models.ForeignKey(Parkspot,on_delete=models.CASCADE)
+    created_at=models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.parkingspot}"
