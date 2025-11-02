@@ -25,9 +25,10 @@ class Parkspot(models.Model):
 class Car(models.Model):
     model=models.CharField(max_length=50,blank=True,null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    points=models.IntegerField(default=0)
     
     def __str__(self):
-        return f"{self.model}"
+        return f"{self.model} -Points: {self.points}"
 
 
 
@@ -37,6 +38,7 @@ class Reservation(models.Model):
     car=models.ForeignKey(Car,on_delete=models.CASCADE)
     Parkspot=models.ForeignKey(Parkspot,on_delete=models.CASCADE)
     created_at=models.DateTimeField(auto_now_add=True)
-
+    date=models.DateField(auto_now=False, auto_now_add=False)
+    
     def __str__(self):
-        return f"{self.user.username} - {self.parkingspot}"
+        return f"{self.user.username} - {self.Parkspot}"

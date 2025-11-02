@@ -63,22 +63,34 @@ class LoginView(APIView):
             return Response(
                 {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
+
 
 class VerifyUserView(APIView):
-  permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
-  def get(self, request):
-    try:
-      user = User.objects.get(username=request.user.username)
-      try:
-        refresh = RefreshToken.for_user(user)
-        return Response({'refresh': str(refresh),'access': str(refresh.access_token),'user': UserSerializer(user).data}, status=status.HTTP_200_OK)
-      except Exception as token_error:
-        return Response({"detail": "Failed to generate token.", "error": str(token_error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    except Exception as err:
-      return Response({"detail": "Unexpected error occurred.", "error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+    def get(self, request):
+        try:
+            user = User.objects.get(username=request.user.username)
+            try:
+                refresh = RefreshToken.for_user(user)
+                return Response(
+                    {
+                        "refresh": str(refresh),
+                        "access": str(refresh.access_token),
+                        "user": UserSerializer(user).data,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            except Exception as token_error:
+                return Response(
+                    {"detail": "Failed to generate token.", "error": str(token_error)},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+        except Exception as err:
+            return Response(
+                {"detail": "Unexpected error occurred.", "error": str(err)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class Home(APIView):
@@ -109,6 +121,21 @@ class CarIndex(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def post(self, request):
+        try:
+            data = request.data.copy()
+            data["user"] = int(request.user.id)
+            serializer = self.serializer_class(data=data)
+            if serializer.is_valid():
+                print(request.user)
+                serializer.save(user_id=request.user.id)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as err:
+            return Response(
+                {"error": str(err)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 class CarDetail(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -136,10 +163,47 @@ class CarDetail(APIView):
         return Response({"success": True}, status=status.HTTP_200_OK)
 
 
-class ReservationViewSet(viewsets.ModelViewSet):
+class ReservationViewSet(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    queryset = Reservation.objects.all()
+    # queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
 
-    def get_queryset(self):
-        return Reservation.objects.filter(user=self.request.user)
+    def get_object(self, reservation_id):
+        try:
+            return Reservation.objects.get(id=reservation_id, user=self.request.user)
+        except Reservation.DoesNotExist:
+            raise Response(
+                {"detail": "Reservation not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    # post delete eidt
+    def get(self, request):
+        reservations = Reservation.objects.filter(user=request.user)
+        serializer = self.serializer_class(reservations, many=True)
+        return Response(serializer.data)
+
+    # إضافة حجز جديد
+    def post(self, request):
+        data = request.data.copy()
+        data["user"] = int(request.user.id)
+        data["Parkspot"] = request.data["spot_number"]
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    #  تعديل الحجز
+    def put(self, request, reservation_id):
+        reservation = self.get_object(reservation_id)
+        serializer = self.serializer_class(reservation, data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # حذف الحجز
+    def delete(self, request, reservation_id):
+        reservation = self.get_object(reservation_id)
+        reservation.delete()
+        return Response({"success": True}, status=status.HTTP_200_OK)
