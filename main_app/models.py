@@ -39,6 +39,7 @@ class Reservation(models.Model):
     Parkspot=models.ForeignKey(Parkspot,on_delete=models.CASCADE)
     created_at=models.DateTimeField(auto_now_add=True)
     date=models.DateField(auto_now=False, auto_now_add=False)
+    is_completed=models.BooleanField(default=False)
     
     def __str__(self):
-        return f"{self.user.username} - {self.Parkspot}"
+        return f"{self.user.username} - {self.Parkspot} ({'Completed' if self.is_completed else 'Active'})"

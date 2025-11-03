@@ -206,21 +206,36 @@ class ReservationViewSet(APIView):
         reservation = self.get_object(reservation_id)
         reservation.delete()
         return Response({"success": True}, status=status.HTTP_200_OK)
+    
 
-
-class AddCarPointsView(APIView):
+class CompleteView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, car_id):
+    def post(self, request, reservation_id):
         try:
-            car = get_object_or_404(Car, id=car_id, user=request.user)
+            reservation = Reservation.objects.get(id=reservation_id, user=request.user)
+            if reservation.is_completed:
+                return Response(
+                    {"message": "Reservation already completed."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            
+            car = reservation.car
             car.points += 5
             car.save()
+
+            reservation.is_completed = True
+            reservation.save()
+
             return Response(
-                {"message": f"5 points added to {car.model}", "new_points": car.points},
-                status=status.HTTP_200_OK
+                {
+                    "message": f"Reservation completed! 5 points added to {car.model}.",
+                    "new_points": car.points,
+                },
+                status=status.HTTP_200_OK,
             )
-        except Exception as err:
+        except Reservation.DoesNotExist:
             return Response(
-                {"error": str(err)}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Reservation not found"}, status=status.HTTP_404_NOT_FOUND
             )
