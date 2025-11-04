@@ -12,7 +12,6 @@ class Parkinglot (models.Model):
     
 
 class Parkspot(models.Model):
-    # spot_number=models.CharField(max_length=10)
     status = models.CharField(
         max_length=20,
         choices=[('available', 'Available'), ('reserved', 'Reserved'), ('occupied', 'Occupied')],
@@ -40,6 +39,9 @@ class Reservation(models.Model):
     created_at=models.DateTimeField(auto_now_add=True)
     date=models.DateField(auto_now=False, auto_now_add=False)
     is_completed=models.BooleanField(default=False)
+
     
     def __str__(self):
         return f"{self.user.username} - {self.Parkspot} ({'Completed' if self.is_completed else 'Active'})"
+    
+    
