@@ -179,6 +179,7 @@ class ReservationViewSet(APIView):
     def get(self, request):
         reservations = Reservation.objects.filter(user=request.user)
         serializer = self.serializer_class(reservations, many=True)
+        #print(serializer.data)
         return Response(serializer.data)
 
     # إضافة حجز جديد

@@ -28,7 +28,7 @@ class ParkinglotSerializer(serializers.ModelSerializer):
 
 
 class ParkspotSerializer(serializers.ModelSerializer):
-
+    parkinglot = ParkinglotSerializer(read_only=True)
     class Meta:
         model = Parkspot
         fields = '__all__'
@@ -42,6 +42,10 @@ class CarSerializer(serializers.ModelSerializer):
 
 
 class ReservationSerializer(serializers.ModelSerializer):
+    Parkspot = serializers.PrimaryKeyRelatedField(
+        queryset=Parkspot.objects.all(), write_only = True
+    )
+    parkspot_info = ParkspotSerializer(source='Parkspot', read_only=True)
     class Meta:
         model = Reservation
         fields = '__all__'
