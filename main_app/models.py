@@ -30,8 +30,6 @@ class Car(models.Model):
         return f"{self.model} -Points: {self.points}"
 
 
-
-
 class Reservation(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE)
     car=models.ForeignKey(Car,on_delete=models.CASCADE)
