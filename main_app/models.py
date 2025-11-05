@@ -43,3 +43,6 @@ class Reservation(models.Model):
         return f"{self.user.username} - {self.Parkspot} ({'Completed' if self.is_completed else 'Active'})"
     
     
+
+
+    
