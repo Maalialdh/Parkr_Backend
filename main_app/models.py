@@ -35,7 +35,7 @@ class Reservation(models.Model):
     car=models.ForeignKey(Car,on_delete=models.CASCADE)
     Parkspot=models.ForeignKey(Parkspot,on_delete=models.CASCADE)
     created_at=models.DateTimeField(auto_now_add=True)
-    date=models.DateField(auto_now=False, auto_now_add=False)
+    date = models.DateTimeField(auto_now=False, auto_now_add=False)
     is_completed=models.BooleanField(default=False)
 
     
